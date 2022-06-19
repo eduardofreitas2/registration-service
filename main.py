@@ -1,12 +1,7 @@
 import os
-import json
 
 # Função anônima que limpa o console.
 clear = lambda: os.system("cls")
-
-# Abre o arquivo txt que será manipulado como banco de dados.
-# db = open("db.json", "w")
-# db_read = open("db.json", "r")
 
 # Array global das reservas.
 reservas = []
@@ -24,7 +19,7 @@ reserva = {
 
 # Função que realiza o cadastro de uma reserva.
 def cadastrar_reserva():
-    print("Cadastro de reserva")
+    print("Informe os dados do cliente para cadastrar a reserva.")
     
     nome = input("Nome: ")
     cpf = input("CPF: ")
@@ -51,20 +46,16 @@ def cadastrar_reserva():
     }
 
     # Validação dos campos obrigatórios
-    if nome != "" or cpf != "" or qtde_pessoas != 0 or qtde_dias != 0 or valor != 0:
-        print("Favor inserir campos válidos.")
+    if nome == "" or cpf == "":
+        print("Favor preencher todos os campos.")
     else:
         reservas.append(reserva)
         print("Cadastro realizado com sucesso!")
-
-    # Converte em JSON e escreve no db.json
-    # json_str = json.dumps(reservas)
-
-    # db.write(json_str)
+    
 
 # Função que faz o check-in de usuários com reservas cadastradas.
 def check_in():
-    print("Check-in")
+    print("Informe um cliente para realizar o Check-in")
 
     cpf = input("CPF: ")
 
@@ -81,38 +72,35 @@ while True:
     print("5 - Relatórios")
     print("6 - Sair")
 
-    # try:
     opcao = int(input("Digite a opção desejada: "))
 
     if opcao == 1:
+        clear()
         cadastrar_reserva()
     elif opcao == 2:
         #TESTE
+        clear()
         print(reservas)
         check_in()
     elif opcao == 3:
-        print("nhcc")
-        # realizar_checkout()
+        clear()
+        print("c")
+        # check_out()
     elif opcao == 4:
-        print("nhaccc")
-        # atualizar_cadastro()
+        clear()
+        print("d")
+        # atualizar_reserva()
     elif opcao == 5:
-        print("nhoncc")
-        # obter_relatorio()
+        clear()
+        print("e")
+        # imprimir_relatorio()
     elif opcao == 6:
-        print("nhoncers")
-        # finalizar_conexao()
         break
     else:
-        raise
+        clear()
+        print("Favor inserir um valor existente.")
 
     print("Pressione enter para voltar ao menu.")
     input("")
-    
-    # Exception que retorna o usuário ao menu caso a opção informada não seja válida.
-    # except:
-        # clear()
-        # print("Por favor, digite uma opção válida. (Pressione enter para voltar ao menu)")
-        # input("")
 
-    # clear()
+    clear()
