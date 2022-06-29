@@ -141,6 +141,62 @@ def atualizar_reserva():
             else:
                 print("Operação cancelada.")
 
+# Função que imprime no console os dados relevantes aquilo que o usuário procura.
+def imprimir_relatorio():
+    print("1 - Relatório de todas as reservas com status R")
+    print("2 - Relatório de todas as reservas com status C")
+    print("3 - Relatório de todas as reservas com status A")
+    print("4 - Relatório de todas as reservas com status F")
+    print("5 - Relatório total recebido")
+    print("6 - Relatório de reserva por pessoa")
+    print("7 - Voltar ao menu")
+
+    opcao = int(input("Digite a opção desejada: "))
+
+    clear()
+
+    if opcao == 1:  
+        print("Reservas com Status 'R - Reservado'.")
+        for reserva in reservas:
+            if reserva['status'] == "R":
+                print(reserva)
+    elif opcao == 2:
+        print("Reservas com Status 'C - Cancelado'.")
+        for reserva in reservas:
+            if reserva['status'] == "C":
+                print(reserva)
+    elif opcao == 3:
+        print("Reservas com Status 'A - Ativo'.")
+        for reserva in reservas:
+            if reserva['status'] == "A":
+                print(reserva)
+    elif opcao == 4:
+        print("Reservas com Status 'F - Finalizado'.")
+        for reserva in reservas:
+            if reserva['status'] == "F":
+                print(reserva)
+    elif opcao == 5:
+        print("Total recebido de todas as reservas.")
+
+        total = 0
+        
+        for reserva in reservas:
+            total = total + reserva['valor']
+
+        print(f"R$: {total}")
+    elif opcao == 6:
+        print("Informe o CPF do cliente para consultar suas reservas.")
+
+        cpf = input("CPF: ")
+        
+        for reserva in reservas:
+            if cpf == reserva['cpf']:
+                print(reserva)
+    elif opcao == 7:
+        return
+    else:
+        print("Favor inserir um valor existente.")
+
 # Menu de navegação dos processos do sistema.
 while True:
     print("1 - Cadastrar uma reserva")
@@ -165,7 +221,7 @@ while True:
         atualizar_reserva()
     elif opcao == 5:
         print("e")
-        # imprimir_relatorio()
+        imprimir_relatorio()
     elif opcao == 6:
         break
     else:
