@@ -40,7 +40,7 @@ def cadastrar_reserva():
     tipo_quarto = input("Tipo do quarto (S - Standard / D - Deluxe / P - Premium): ").upper()
 
     # Validações dos campos
-    if not tipo_quarto == "S" or tipo_quarto == "D" or tipo_quarto == "P":
+    if not (tipo_quarto == "S" or tipo_quarto == "D" or tipo_quarto == "P"):
         return print("Favor inserir um tipo de quarto válido.")
 
     if nome == "" or cpf == "" or qtde_pessoas == "" or qtde_dias == "" or tipo_quarto == "":
