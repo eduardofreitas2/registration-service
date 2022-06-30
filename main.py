@@ -11,7 +11,7 @@ cursor = db.cursor()
 clear = lambda: os.system("cls")
 
 # Função que monta a query para buscar a tabela de reservas e converte em lista.
-def get_reservas_table():
+def get_all_reservas():
     cursor.execute("SELECT * FROM reservas")
     reservas = cursor.fetchall()
     reservas_list = list(reservas)
@@ -19,12 +19,12 @@ def get_reservas_table():
     return reservas_list
 
 # Função que monta a query para buscar somente os valores dos status "finalizados"
-def get_reserva_total():
-    cursor.execute("SELECT * FROM reservas WHERE status ='F'")
+def get_reservas_finalizadas():
+    cursor.execute("SELECT * FROM reservas WHERE status = 'F'")
     reservas = cursor.fetchall()
-    reserva_total = list(reservas)
+    reservas_finalizadas = list(reservas)
     
-    return reserva_total
+    return reservas_finalizadas
 
 # Função que calcula o valor da reserva conforme o tipo do quarto, número de pessoas e quantidade de dias.
 def calcula_valor(tipo_quarto, qtde_pessoas, qtde_dias):
@@ -200,11 +200,13 @@ def imprimir_relatorio():
         for row in rows: 
             print(row)
     elif opcao == 5:
+        reservas_finalizadas = get_reservas_finalizadas()
+
         print("Total recebido de todas as reservas.")
 
         total = 0
         
-        for reserva in reserva_total:
+        for reserva in reservas_finalizadas:
             total = total + reserva[5]
 
         print(f"R$: {total}")
@@ -218,10 +220,6 @@ def imprimir_relatorio():
 
         for row in rows:
             print(row)
-        
-        for reserva in reservas_list:
-            if cpf == reserva[1]:
-                print(reserva)
     elif opcao == 7:
         return
     else:
@@ -239,8 +237,7 @@ while True:
     opcao = int(input("Digite a opção desejada: "))
 
     clear()
-    reservas_list = get_reservas_table()
-    reserva_total = get_reserva_total()
+    reservas_list = get_all_reservas()
     # print(reservas_list) # Informação de testes para conseguir visualizar as reservas cadastradas.
 
     if opcao == 1:
