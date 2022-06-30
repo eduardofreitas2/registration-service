@@ -1,21 +1,22 @@
 import os
+import sqlite3
+
+# Conexão com o banco
+db = sqlite3.connect('registration-service.db')
+
+# Cursor é utilizado para executar queries.
+cursor = db.cursor()
 
 # Função anônima que limpa o console.
 clear = lambda: os.system("cls")
 
-# Array global das reservas.
-reservas = []
-
-# Objeto da reserva passando o tipo e nome dos atributos que deverão ser informados.
-reserva = {
-    "nome": "",
-    "cpf": "",
-    "qtde_pessoas": 0,
-    "qtde_dias": 0,
-    "tipo_quarto": "S",
-    "valor": 0,
-    "status": "R"
-}
+# Função que monta a query para buscar a tabela de reservas e converte em lista.
+def get_reservas_table():
+    cursor.execute("SELECT * FROM reservas")
+    reservas = cursor.fetchall()
+    reservas_list = list(reservas)
+    
+    return reservas_list
 
 # Função que calcula o valor da reserva conforme o tipo do quarto, número de pessoas e quantidade de dias.
 def calcula_valor(tipo_quarto, qtde_pessoas, qtde_dias):
@@ -34,30 +35,24 @@ def cadastrar_reserva():
     
     nome = input("Nome: ")
     cpf = input("CPF: ")
-    qtde_pessoas = int(input("Quantidade de pessoas: "))
-    qtde_dias = int(input("Quantidade de dias: "))
-    tipo_quarto = input("Tipo do quarto (S - Standard / D - Deluxe / P - Premium): ")
+    qtde_pessoas = input("Quantidade de pessoas: ")
+    qtde_dias = input("Quantidade de dias: ")
+    tipo_quarto = input("Tipo do quarto (S - Standard / D - Deluxe / P - Premium): ").upper()
+
+    # Validações dos campos
+    if not tipo_quarto == "S" or tipo_quarto == "D" or tipo_quarto == "P":
+        return print("Favor inserir um tipo de quarto válido.")
+
+    if nome == "" or cpf == "" or qtde_pessoas == "" or qtde_dias == "" or tipo_quarto == "":
+        return print("Favor preencher todos os campos.")
 
     # Invoca a função calcula_valor que recebe os parâmetros relevantes para calcular o valor.
-    valor = calcula_valor(tipo_quarto, qtde_pessoas, qtde_dias)
+    valor = calcula_valor(tipo_quarto, int(qtde_pessoas), int(qtde_dias))
 
-    # Aqui, são atribuidos os valores informados pelo usuário a cada propriedade da reserva.
-    reserva = {
-        "nome": nome,
-        "cpf": cpf,
-        "qtde_pessoas": qtde_pessoas,
-        "qtde_dias": qtde_dias,
-        "tipo_quarto": tipo_quarto,
-        "valor": valor,
-        "status": "R"
-    }
+    cursor.execute(f"INSERT INTO reservas VALUES ('{nome}', '{cpf}', {int(qtde_pessoas)}, {int(qtde_dias)}, '{tipo_quarto}', {valor}, 'R')")
+    db.commit()
 
-    # Validação dos campos obrigatórios
-    if nome == "" or cpf == "":
-        print("Favor preencher todos os campos.")
-    else:
-        reservas.append(reserva)
-        print("Cadastro realizado com sucesso!")
+    print("Cadastro realizado com sucesso!")
 
 # Função que faz o check-in de usuários com reservas cadastradas.
 def check_in():
@@ -65,22 +60,22 @@ def check_in():
 
     cpf = input("CPF: ")
     # Itera o array de reservas passando por cada elemento.
-    for reserva in reservas:
+    for reserva in reservas_list:
         # Se encontrar um cpf inserido pelo usuário igual a um cpf cadastrado em uma reserva ele confirma se o usuário deseja confirmar o Check-in.
-        if cpf == reserva['cpf']:
+        if cpf == reserva[1]:
             # Se a reserva já for "A - Ativo" ele informa o usuário e retorna ele ao menu.
-            if reserva['status'] == "A":
-                print(f"Check-in já realizado para a reserva do cliente {reserva['nome']}.")
-                
-                continue
+            if reserva[6] == "A":                
+                return print(f"Check-in já realizado para a reserva do cliente {reserva[0]}.")
+            elif reserva[6] == "F":
+                return print(f"Reserva já finalizada.")
 
             print("Reserva encontrada!")
 
-            confirmar = input("Confirmar Check-in? (S/N): ")
+            confirmar = input("Confirmar Check-in? (S/N): ").upper()
             # Se o usuário confirmar o Check-in o status da reserva é alterado de "R - Reservado" (Default) para "A - Ativo".
             if confirmar == "S":
-                reserva['status'] = "A"
-
+                cursor.execute(f"UPDATE reservas SET status = 'A' WHERE cpf = '{cpf}'")
+                db.commit()
                 print("Check-in realizado com sucesso.")
             else:
                 print("Operação cancelada.")
@@ -91,51 +86,58 @@ def check_out():
 
     cpf = input("CPF: ")
     # Itera o array de reservas passando por cada elemento.
-    for reserva in reservas:
+    for reserva in reservas_list:
         # Se encontrar um cpf inserido pelo usuário igual a um cpf cadastrado em uma reserva ele confirma se o usuário deseja confirmar o Check-out.
-        if cpf == reserva['cpf']:
+        if cpf == reserva[1]:
             # Se a reserva já for "F - Finalizado", "R - Reservado" ou "C - Cancelado" ele informa o usuário e retorna ele ao menu.
-            if reserva['status'] == "F" or reserva['status'] == "R" or reserva['status'] == "C":
-                print(f"Não há Check-ins para o cliente {reserva['nome']}.")
-                
-                continue
+            if not reserva[6] == "A":
+                return print(f"Não há Check-ins para o cliente {reserva['nome']}.")
 
             print("Check-in encontrado!")
 
-            confirmar = input("Confirmar Check-out? (S/N): ")
+            confirmar = input("Confirmar Check-out? (S/N): ").upper()
             # Se o usuário confirmar o Check-in o status da reserva é alterado de "R - Reservado" (Default) para "A - Ativo".
             if confirmar == "S":
-                reserva['status'] = "F"
-
+                cursor.execute(f"UPDATE reservas SET status = 'F' WHERE cpf = '{cpf}'")
+                db.commit()
                 print("Check-out realizado com sucesso.")
             else:
                 print("Operação cancelada.")
 
+# Função que atualiza os dados de uma reserva.
 def atualizar_reserva():
     print("Informe um cliente para atualizar os dados da reserva.")
 
     cpf = input("CPF: ")
     # Itera o array de reservas passando por cada elemento.
-    for reserva in reservas:
+    for reserva in reservas_list:
         # Se encontrar um cpf inserido pelo usuário igual a um cpf cadastrado o usuário consegue alterar e confirmar alterações de dados da reserva.
-        if cpf == reserva['cpf']:
+        if cpf == reserva[1]:
             print("Informe os dados que deseja alterar da reserva.")
 
-            qtde_pessoas = int(input("Quantidade de pessoas: "))
-            qtde_dias = int(input("Quantidade de dias: "))
+            qtde_pessoas = input("Quantidade de pessoas: ")
+            qtde_dias = input("Quantidade de dias: ")
             tipo_quarto = input("Tipo do quarto (S - Standard / D - Deluxe / P - Premium): ")
+            status = input("Status (R - Reservado / C - Cancelado / A - Ativo, F - Finalizado): ")
+
+            # Validações dos campos
+            if not status == "R" or status == "C" or status == "A" or status == "F":
+                return print("Favor inserir um status válido.")
+            elif not tipo_quarto == "S" or tipo_quarto == "D" or tipo_quarto == "P":
+                return print("Favor inserir um tipo de quarto válido.")
+
+            if qtde_pessoas == "" or qtde_dias == "" or tipo_quarto == "" or status == "":
+                return print("Favor preencher todos os campos.")
 
             # Invoca a função calcula_valor que recebe os parâmetros relevantes para calcular o valor.
-            valor = calcula_valor(tipo_quarto, qtde_pessoas, qtde_dias)
+            valor = calcula_valor(tipo_quarto, int(qtde_pessoas), int(qtde_dias))
 
             confirmar = input("Confirmar alterações? (S/N): ")
             # Se o usuário confirmar as alterações os dados anteriores são sobrescritos pelos novos.
             if confirmar == "S":
                 # Atribui os novos valores da reserva a cada propriedade.
-                reserva['qtde_pessoas'] = qtde_pessoas
-                reserva['qtde_dias'] = qtde_dias
-                reserva['tipo_quarto'] = tipo_quarto
-                reserva['valor'] = valor
+                cursor.execute(f"UPDATE reservas SET qtde_pessoas = {qtde_pessoas}, qtde_dias = {qtde_dias}, tipo_quarto = '{tipo_quarto}', valor = {valor}, status = '{status}' WHERE cpf = '{cpf}'")
+                db.commit()
 
                 print("Dados alterados com sucesso.")
             else:
@@ -154,43 +156,61 @@ def imprimir_relatorio():
     opcao = int(input("Digite a opção desejada: "))
 
     clear()
-
+        
     if opcao == 1:  
         print("Reservas com Status 'R - Reservado'.")
-        for reserva in reservas:
-            if reserva['status'] == "R":
-                print(reserva)
+
+        cursor.execute("SELECT * FROM reservas WHERE status = 'R'")
+        rows = cursor.fetchall()
+
+        for row in rows: 
+            print(row)
     elif opcao == 2:
         print("Reservas com Status 'C - Cancelado'.")
-        for reserva in reservas:
-            if reserva['status'] == "C":
-                print(reserva)
+
+        cursor.execute("SELECT * FROM reservas WHERE status = 'C'")
+        rows = cursor.fetchall()
+
+        for row in rows: 
+            print(row)
     elif opcao == 3:
         print("Reservas com Status 'A - Ativo'.")
-        for reserva in reservas:
-            if reserva['status'] == "A":
-                print(reserva)
+        
+        cursor.execute("SELECT * FROM reservas WHERE status = 'A'")
+        rows = cursor.fetchall()
+
+        for row in rows: 
+            print(row)
     elif opcao == 4:
         print("Reservas com Status 'F - Finalizado'.")
-        for reserva in reservas:
-            if reserva['status'] == "F":
-                print(reserva)
+        
+        cursor.execute("SELECT * FROM reservas WHERE status = 'F'")
+        rows = cursor.fetchall()
+
+        for row in rows: 
+            print(row)
     elif opcao == 5:
         print("Total recebido de todas as reservas.")
 
         total = 0
         
-        for reserva in reservas:
-            total = total + reserva['valor']
+        for reserva in reservas_list:
+            total = total + reserva[5]
 
         print(f"R$: {total}")
     elif opcao == 6:
         print("Informe o CPF do cliente para consultar suas reservas.")
 
         cpf = input("CPF: ")
+
+        cursor.execute(f"SELECT * FROM reservas WHERE cpf = '{cpf}'")
+        rows = cursor.fetchall()
+
+        for row in rows:
+            print(row)
         
-        for reserva in reservas:
-            if cpf == reserva['cpf']:
+        for reserva in reservas_list:
+            if cpf == reserva[1]:
                 print(reserva)
     elif opcao == 7:
         return
@@ -209,7 +229,8 @@ while True:
     opcao = int(input("Digite a opção desejada: "))
 
     clear()
-    print(reservas) # Informação de testes para conseguir visualizar as reservas cadastradas.
+    reservas_list = get_reservas_table()
+    # print(reservas_list) # Informação de testes para conseguir visualizar as reservas cadastradas.
 
     if opcao == 1:
         cadastrar_reserva()
