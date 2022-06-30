@@ -15,8 +15,16 @@ def get_reservas_table():
     cursor.execute("SELECT * FROM reservas")
     reservas = cursor.fetchall()
     reservas_list = list(reservas)
-    
+
     return reservas_list
+
+# Função que monta a query para buscar somente os valores dos status "finalizados"
+def get_reserva_total():
+    cursor.execute("SELECT * FROM reservas WHERE status ='F'")
+    reservas = cursor.fetchall()
+    reserva_total = list(reservas)
+    
+    return reserva_total
 
 # Função que calcula o valor da reserva conforme o tipo do quarto, número de pessoas e quantidade de dias.
 def calcula_valor(tipo_quarto, qtde_pessoas, qtde_dias):
@@ -32,7 +40,7 @@ def calcula_valor(tipo_quarto, qtde_pessoas, qtde_dias):
 # Função que realiza o cadastro de uma reserva.
 def cadastrar_reserva():
     print("Informe os dados do cliente para cadastrar a reserva.")
-    
+
     nome = input("Nome: ")
     cpf = input("CPF: ")
     qtde_pessoas = input("Quantidade de pessoas: ")
@@ -46,13 +54,15 @@ def cadastrar_reserva():
     if nome == "" or cpf == "" or qtde_pessoas == "" or qtde_dias == "" or tipo_quarto == "":
         return print("Favor preencher todos os campos.")
 
+
     # Invoca a função calcula_valor que recebe os parâmetros relevantes para calcular o valor.
     valor = calcula_valor(tipo_quarto, int(qtde_pessoas), int(qtde_dias))
-
+    
     cursor.execute(f"INSERT INTO reservas VALUES ('{nome}', '{cpf}', {int(qtde_pessoas)}, {int(qtde_dias)}, '{tipo_quarto}', {valor}, 'R')")
     db.commit()
 
     print("Cadastro realizado com sucesso!")
+    
 
 # Função que faz o check-in de usuários com reservas cadastradas.
 def check_in():
@@ -121,9 +131,9 @@ def atualizar_reserva():
             status = input("Status (R - Reservado / C - Cancelado / A - Ativo, F - Finalizado): ")
 
             # Validações dos campos
-            if not status == "R" or status == "C" or status == "A" or status == "F":
+            if not (status == "R" or status == "C" or status == "A" or status == "F"):
                 return print("Favor inserir um status válido.")
-            elif not tipo_quarto == "S" or tipo_quarto == "D" or tipo_quarto == "P":
+            elif not (tipo_quarto == "S" or tipo_quarto == "D" or tipo_quarto == "P"):
                 return print("Favor inserir um tipo de quarto válido.")
 
             if qtde_pessoas == "" or qtde_dias == "" or tipo_quarto == "" or status == "":
@@ -194,7 +204,7 @@ def imprimir_relatorio():
 
         total = 0
         
-        for reserva in reservas_list:
+        for reserva in reserva_total:
             total = total + reserva[5]
 
         print(f"R$: {total}")
@@ -230,6 +240,7 @@ while True:
 
     clear()
     reservas_list = get_reservas_table()
+    reserva_total = get_reserva_total()
     # print(reservas_list) # Informação de testes para conseguir visualizar as reservas cadastradas.
 
     if opcao == 1:
@@ -241,7 +252,6 @@ while True:
     elif opcao == 4:
         atualizar_reserva()
     elif opcao == 5:
-        print("e")
         imprimir_relatorio()
     elif opcao == 6:
         break
