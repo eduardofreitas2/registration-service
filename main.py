@@ -62,7 +62,6 @@ def cadastrar_reserva():
     db.commit()
 
     print("Cadastro realizado com sucesso!")
-    
 
 # Função que faz o check-in de usuários com reservas cadastradas.
 def check_in():
