@@ -101,7 +101,7 @@ def check_out():
         if cpf == reserva[1]:
             # Se a reserva já for "F - Finalizado", "R - Reservado" ou "C - Cancelado" ele informa o usuário e retorna ele ao menu.
             if not reserva[6] == "A":
-                return print(f"Não há Check-ins para o cliente {reserva['nome']}.")
+                return print(f"Não há Check-ins para o cliente {reserva[0]}.")
 
             print("Check-in encontrado!")
 
